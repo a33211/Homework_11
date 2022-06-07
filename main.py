@@ -1,4 +1,5 @@
 from collections import UserDict
+from datetime import date, timedelta
 import re
 
 
@@ -20,9 +21,6 @@ class Phone(Field):
     def __repr__(self):
         return f'{self.param}'
 
-    # !! Проверку на корректность веденного номера телефона в setter для value класса Phone.
-    # def phone_setter(self, param, result):
-    #   for
     @property
     def param(self):  # Смотри сюда, метод должен называться по именю поля!
         return self._param
@@ -44,7 +42,7 @@ class Birthday(Field):
 
     @property
     def param(self):
-        print("!!!2test{b_day}")
+        print("!!!2test{_param}")
         return self._param
 
     @param.setter
@@ -52,7 +50,7 @@ class Birthday(Field):
         match = re.search(r'\d{2}.\d{2}.\d{4}', data)
         if match:
             self._param = data
-            print('Пыщ-Пыщ')  # ОН ТАК И НЕ ВЫЗВАЛСЯ
+            print('Пыщ-Пыщ')
         else:
             raise ValueError("Birthday format issue. Please enter b-day in DD.MM.YY format")
         print("setter method called")
@@ -83,13 +81,18 @@ class Record:
                 self.addPhone(new_phone)
 
     # !!!!!Add functional working with Birthdays
-    def days_to_birthday(self, b_day):
-        # get this_b_day
-        # next_b_day = this_b_day + 1 year
-        # convert this_b_day to days
-        # convert next_b_day to days
-        # return next_b_day to days - this_b_day to days
-        pass
+    def days_to_birthday(self, b_day: Birthday):
+        b_day_day = date.strptime(b_day, '%d.%m.%Y')
+        day_now = date.now()
+        if b_day_day > day_now:
+            delta = b_day_day - day_now
+            print(f'You have left {delta.days} to next birthday!')
+            return delta
+        else:
+            next_b_day = b_day_day.replace(year=b_day_day.year + 1)
+            delta = next_b_day - day_now
+            print(f'You have left {delta.days} to next birthday!')
+            return delta
 
 
 class AddressBook(UserDict):
@@ -97,13 +100,7 @@ class AddressBook(UserDict):
     def add_record(self, rec, b_day=None):
         self.data[rec.name.param] = rec
 
-    def iterator(self):
-        pass
-    # !!!! Vallidation of phone and birthday
-    # !!! AddressBook p
 
-
-# Phonebook is now a tuple
 phone_book = AddressBook()
 
 
@@ -156,6 +153,12 @@ def change_phone(*args):
         print(f'Contact {value} changed successful')
     print(phone_book)
     return phone_book
+
+
+def days_left(*args):
+    key = args[0]
+    b_days.left = Birthday(args[1])
+    ...
 
 
 def exit(*args):
