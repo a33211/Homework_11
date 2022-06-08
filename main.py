@@ -81,8 +81,9 @@ class Record:
                 self.addPhone(new_phone)
 
     # !!!!!Add functional working with Birthdays
-    def days_to_birthday(self, b_day: Birthday):
-        b_day_day = date.strptime(b_day, '%d.%m.%Y')
+    def days_to_birthday(self, b_day_day=None):
+        b_day_day = self.birthday
+        b_day_day = date.strptime(b_day_day, '%d.%m.%Y')
         day_now = date.now()
         if b_day_day > day_now:
             delta = b_day_day - day_now
@@ -157,8 +158,9 @@ def change_phone(*args):
 
 def days_left(*args):
     key = args[0]
-    b_days.left = Birthday(args[1])
-    ...
+    if key:
+        b_days_left = Birthday(args[2]).days_to_birthday()
+        print(f'b_days_left = {b_days_left}')
 
 
 def exit(*args):
@@ -170,28 +172,29 @@ COMMANDS = {
     adds_phone: ['append phone'],
     erase_phone: ["erase"],  # in command enter command, user, phone number to erase
     change_phone: ["change phone"],
-    # days to birthday call
+    days_left: ['days left'],
     exit: ["good bye", "close", "exit"]
 }
 
 
 def parse_command(user_input: str):
+    count = 0
     for komand, v in COMMANDS.items():
-        count = 0
-        b_day = None
         for i in v:
-            if count == 2:
-                b_day = i
+            print(i)
+            # if count==4:
+            #   data = user_input[len(i):].strip().split(" ")
+            #   return komand, data
             if user_input.lower().startswith(i.lower()):
                 data = user_input[len(i):].strip().split(" ")
+                return komand, data
             count += 1
-        return komand, data, b_day
 
 
 def main():
     while True:
-        user_input = input('Please enter your command in format command -> User -> phone number -> birthday date')
-        result, data, b_day = parse_command(user_input)
+        user_input = input('Please enter your command in format command -> User -> phone number -> birthday date \n')
+        result, data = parse_command(user_input)
         print(result(*data))
         if result is exit:
             break
