@@ -1,32 +1,28 @@
 from collections import UserDict
-from datetime import date, timedelta
-import re
+from datetime import datetime, timedelta
 
 
 class Field:
-    pass
-
-
-class Name(Field):
-    def __init__(self, param):
-        self.param = param
-
-
-class Phone(Field):
     def __init__(self, param):
         self._param = None
         self.param = param
-        print(f'!!!!МОТРИ СЮДА {param}')
 
     def __repr__(self):
         return f'{self.param}'
 
     @property
-    def param(self):  # Смотри сюда, метод должен называться по именю поля!
+    def param(self):
         return self._param
 
-    # a setter function
-    @param.setter
+
+class Name(Field):
+    @Field.param.setter
+    def param(self, param):
+        self._param = param
+
+
+class Phone(Field):
+    @Field.param.setter
     def param(self, data):
         if len(data) == 13 or data.startswith('+380'):
             self._param = data
@@ -36,35 +32,24 @@ class Phone(Field):
 
 
 class Birthday(Field):
-    def __init__(self, param):
-        self._param = None
-        self.param = param
-
-    @property
-    def param(self):
-        print("!!!2test{_param}")
-        return self._param
-
-    @param.setter
+    @Field.param.setter
     def param(self, data):
-        match = re.search(r'\d{2}.\d{2}.\d{4}', data)
-        if match:
-            self._param = data
-            print('Пыщ-Пыщ')
-        else:
+        try:
+            self._param = datetime.strptime(data, '%d.%m.%Y').date()
+        except:
             raise ValueError("Birthday format issue. Please enter b-day in DD.MM.YY format")
-        print("setter method called")
 
 
 class Record:
     def __init__(self, name, phone=None, b_day=None):
         self.name = name
+        self.b_day = b_day
         self.phones = []
         if phone:
-            self.phones.append(phone)
+            self.addPhone(phone)
 
     def __repr__(self):
-        return f'{self.phones}'
+        return f'{self.phones} {self.b_day.param if self.b_day else ""}'
 
     def addPhone(self, phone: Phone):
         self.phones.append(phone)
@@ -80,29 +65,40 @@ class Record:
                 self.erasePhone(p)
                 self.addPhone(new_phone)
 
-    # !!!!!Add functional working with Birthdays
-    def days_to_birthday(self, b_day_day=None):
-        b_day_day = self.birthday
-        b_day_day = date.strptime(b_day_day, '%d.%m.%Y')
-        day_now = date.now()
-        if b_day_day > day_now:
-            delta = b_day_day - day_now
+    def days_to_birthday(self):
+        if not self.b_day:
+            return None
+        day_now = datetime.now().date()
+        current_year = self.b_day.param.replace(year=day_now.year)
+        if current_year > day_now:
+            delta = current_year - day_now
             print(f'You have left {delta.days} to next birthday!')
             return delta
         else:
-            next_b_day = b_day_day.replace(year=b_day_day.year + 1)
+            next_b_day = current_year.replace(year=day_now.year + 1)
             delta = next_b_day - day_now
             print(f'You have left {delta.days} to next birthday!')
             return delta
 
 
 class AddressBook(UserDict):
-    # !!! Add optiona value: Birthday
-    def add_record(self, rec, b_day=None):
+    def add_record(self, rec):
         self.data[rec.name.param] = rec
+
+    def paginator(self, rec_num=2):
+        whole_book = self
+        for name, phone in whole_book.values():
+            for i in range(rec_num - 1):
+                yield f'{name}~~~~{phone}'
+                i += 1
 
 
 phone_book = AddressBook()
+
+
+def paginate(*args):
+    for rec in phone_book.paginator():
+        print(rec)
 
 
 def add(*args):
@@ -126,7 +122,6 @@ def add(*args):
 def erase_phone(*args):
     name = Name(args[0])
     phone = Phone(args[1])
-    print(f'!!!!!{args[1]}     {name} ')
     rec = phone_book[name.param]
     if rec:
         rec.erasePhone(phone)
@@ -157,9 +152,10 @@ def change_phone(*args):
 
 
 def days_left(*args):
-    key = args[0]
-    if key:
-        b_days_left = Birthday(args[2]).days_to_birthday()
+    print(*args)
+    rec = phone_book.get(args[0])
+    if rec:
+        b_days_left = rec.days_to_birthday()
         print(f'b_days_left = {b_days_left}')
 
 
@@ -173,22 +169,17 @@ COMMANDS = {
     erase_phone: ["erase"],  # in command enter command, user, phone number to erase
     change_phone: ["change phone"],
     days_left: ['days left'],
+    paginate: ['paginate'],
     exit: ["good bye", "close", "exit"]
 }
 
 
 def parse_command(user_input: str):
-    count = 0
     for komand, v in COMMANDS.items():
         for i in v:
-            print(i)
-            # if count==4:
-            #   data = user_input[len(i):].strip().split(" ")
-            #   return komand, data
             if user_input.lower().startswith(i.lower()):
                 data = user_input[len(i):].strip().split(" ")
                 return komand, data
-            count += 1
 
 
 def main():
