@@ -175,7 +175,7 @@ COMMANDS = {
     erase_phone: ["erase"],  # in command enter command, user, phone number to erase
     change_phone: ["change phone"],
     days_left: ['days left'],
-    paginate: ['paginate'],
+    paginate: ['paginate'], # just type  paginate
     exit: ["good bye", "close", "exit"]
 }
 
