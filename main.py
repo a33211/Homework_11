@@ -86,19 +86,25 @@ class AddressBook(UserDict):
         self.data[rec.name.param] = rec
 
     def paginator(self, rec_num=2):
-        whole_book = self
-        for name, phone in whole_book.values():
-            for i in range(rec_num - 1):
-                yield f'{name}~~~~{phone}'
+        print_str = ''
+        i = 1
+        for record in self.values():
+            print_str += f'{record.name}~~~~{record.phones}\n'
+            if i < rec_num:
                 i += 1
+            else:
+                yield print_str + '\n'
+                print_str = ''
+                i = 1
+        yield print_str + '\n'
 
 
 phone_book = AddressBook()
 
 
 def paginate(*args):
-    for rec in phone_book.paginator():
-        print(rec)
+    for print_str in phone_book.paginator():
+        print(print_str)
 
 
 def add(*args):
